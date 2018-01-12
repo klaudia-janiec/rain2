@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>three.js webgl - shaders - ocean</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body style="margin: 0;">
+    <div id="stats"></div>
+    <div id="container"></div>
+
+    <script src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/libs/stats.min.js"></script>
+    <script type="text/javascript" src="js/libs/dat.gui.min.js"></script>
+    <script>
+      function init() {
+        var cloud;
+        var stats = initStats();
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+
+        var webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0x000000));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 30;
+        camera.lookAt(new THREE.Vector3(0, 30, 0));
+
+        document.getElementById("container").appendChild(webGLRenderer.domElement);
+
+        var controls = new function () {
+          this.size = 0.6;
+          this.transparent = true;
+          this.opacity = 0.6;
+          this.color = new THREE.Color(0xffffff);
+          this.sizeAttenuation = true;
+          this.wind = 0.0;
+          this.strength = 2.0;
+          this.redraw = function () {
+            scene.remove(cloud);
+            createPointCloud(controls.size, controls.transparent, controls.opacity, controls.sizeAttenuation, controls.color, controls.wind, controls.strength);
+          };
+        };
+
+        var gui = new dat.GUI();
+        gui.add(controls, 'size', 0, 5).onChange(controls.redraw);
+        gui.add(controls, 'transparent').onChange(controls.redraw);
+        gui.add(controls, 'opacity', 0, 1).onChange(controls.redraw);
+        gui.add(controls, 'wind', -2.0, 2.0).onChange(controls.redraw);
+        gui.add(controls, 'strength', 1.0, 3.0).onChange(controls.redraw);
+        gui.add(controls, 'sizeAttenuation').onChange(controls.redraw);
+        var controlador = gui.addColor(controls, 'color').onChange(function(colorValue)
+          {
+            controls.color = new THREE.Color(colorValue.r / 255, colorValue.g / 255, colorValue.b / 255);
+            controls.redraw();
+          }
+        );
+
+        controls.redraw();
+
+        render();
+
+        function createPointCloud(size, transparent, opacity, sizeAttenuation, color, wind, strength) {
+          var loader = new THREE.TextureLoader();
+          var texture = loader.load("textures/raindrop.png");
+          var geom = new THREE.Geometry();
+          var material = new THREE.PointsMaterial({
+            size: size,
+            transparent: transparent,
+            opacity: opacity,
+            map: texture,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: sizeAttenuation,
+            color: color
+          });
+          var range = 100;
+
+          for (var i = 0; i < 1500; i++) {
+            var particle = new THREE.Vector3(
+            Math.random() * range - range / 2,
+            Math.random() * range * 1.5,
+            Math.random() * range - range / 2);
+            particle.velocityY = strength + Math.random();
+            particle.velocityX = (Math.random() - 0.5) / 3 + wind;
+            geom.vertices.push(particle);
+          }
+          cloud = new THREE.Points(geom, material);
+          cloud.sortParticles = true;
+          scene.add(cloud);
+        }
+
+        function render() {
+          stats.update();
+          var vertices = cloud.geometry.vertices;
+          vertices.forEach(function (v) {
+            v.y = v.y - (v.velocityY);
+            v.x = v.x - (v.velocityX);
+            if (v.y <= 0) v.y = 60;
+            if (v.x <= -40) v.x = v.x + 80;
+            if(v.x >= 40) v.x = v.x - 80;
+          });
+          cloud.geometry.verticesNeedUpdate = true;
+          requestAnimationFrame(render);
+          webGLRenderer.render(scene, camera);
+        }
+      }
+
+      function initStats() {
+        var stats = new Stats();
+        stats.setMode	(0);
+
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        document.getElementById('stats').appendChild(stats.domElement);
+
+        return stats;
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
