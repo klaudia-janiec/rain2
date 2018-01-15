@@ -70,7 +70,18 @@
 
         function createPointCloud(size, transparent, opacity, sizeAttenuation, color, wind, strength) {
           var loader = new THREE.TextureLoader();
-          var texture = loader.load("textures/raindrop.png");
+          var textureNoWind = loader.load("textures/raindrop.png");
+          var textureRightWind = loader.load("textures/raindrop-left.png");
+          var textureLeftWind = loader.load("textures/raindrop-right.png");
+          var texture;
+          if (wind < -0.5) {
+            texture = textureLeftWind;
+          } else if (wind > 0.5) {
+            texture = textureRightWind;
+          } else {
+            texture = textureNoWind;
+          }
+
           var geom = new THREE.Geometry();
           var material = new THREE.PointsMaterial({
             size: size,
