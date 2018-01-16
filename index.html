@@ -46,8 +46,7 @@
           this.wind = 0.0;
           this.strength = 2.0;
           this.redraw = function () {
-            scene.remove(cloud);
-            createPointCloud(controls.size, controls.transparent, controls.opacity, controls.sizeAttenuation, controls.color, controls.wind, controls.strength);
+            redrawDrops();
           };
         };
 
@@ -70,7 +69,9 @@
         orbit_controls.minDistance = 40.0;
         orbit_controls.maxDistance = 50.0;
 
-        window.addEventListener( 'resize', onWindowResize, false );
+        window.addEventListener('resize', onWindowResize, false);
+        window.addEventListener('mousedown', redrawDrops, false);
+        window.addEventListener('mouseup', redrawDrops, false);
 
         controls.redraw();
 
@@ -81,13 +82,34 @@
           var textureNoWind = loader.load("textures/raindrop.png");
           var textureRightWind = loader.load("textures/raindrop-left.png");
           var textureLeftWind = loader.load("textures/raindrop-right.png");
+          var textureFlat = loader.load("textures/drop-flat.png");
           var texture;
-          if (wind < -0.5) {
-            texture = textureLeftWind;
-          } else if (wind > 0.5) {
-            texture = textureRightWind;
+          if (camera.position.y >= 40 || camera.position.y <= -40) {
+            texture = textureFlat;
           } else {
-            texture = textureNoWind;
+            if (wind < -0.5) {
+              if (camera.position.x <= 30 && camera.position.x >= -30) {
+                if (camera.position.z >= 0) {
+                  texture = textureLeftWind;
+                } else {
+                  texture = textureRightWind;
+                }
+              } else {
+                texture = textureFlat;
+              }
+            } else if (wind > 0.5) {
+              if (camera.position.x <= 30 && camera.position.x >= -30) {
+                if (camera.position.z >= 0) {
+                  texture = textureRightWind;
+                } else {
+                  texture = textureLeftWind;
+                }
+              } else {
+                texture = textureFlat;
+              }
+            } else {
+              texture = textureNoWind;
+            }
           }
 
           var geom = new THREE.Geometry();
@@ -161,7 +183,12 @@
           camera.aspect = window.innerWidth / window.innerHeight;
           camera.updateProjectionMatrix();
 
-          webGLRenderer.setSize( window.innerWidth, window.innerHeight );
+          webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function redrawDrops() {
+          scene.remove(cloud);
+          createPointCloud(controls.size, controls.transparent, controls.opacity, controls.sizeAttenuation, controls.color, controls.wind, controls.strength);
         }
       }
 
