@@ -82,6 +82,8 @@
           var textureNoWind = loader.load("textures/raindrop.png");
           var textureRightWind = loader.load("textures/raindrop-left.png");
           var textureLeftWind = loader.load("textures/raindrop-right.png");
+          var textureAlmostFlat = loader.load("textures/raindrop-almost-flat.png");
+
           var textureFlat = loader.load("textures/drop-flat.png");
           var texture;
           if (camera.position.y >= 40 || camera.position.y <= -40) {
@@ -95,7 +97,7 @@
                   texture = textureRightWind;
                 }
               } else {
-                texture = textureFlat;
+                texture = textureAlmostFlat;
               }
             } else if (wind > 0.5) {
               if (camera.position.x <= 30 && camera.position.x >= -30) {
@@ -105,7 +107,7 @@
                   texture = textureLeftWind;
                 }
               } else {
-                texture = textureFlat;
+                texture = textureAlmostFlat;
               }
             } else {
               texture = textureNoWind;
